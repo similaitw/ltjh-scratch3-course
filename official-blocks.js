@@ -379,6 +379,36 @@ const XML = {
   </xml>`
 };
 
+const SCRATCH_BLOCK_STYLES = {
+  motion: {colourPrimary:'#4C97FF',colourSecondary:'#4280D7',colourTertiary:'#3373CC',colourQuaternary:'#3373CC'},
+  looks: {colourPrimary:'#9966FF',colourSecondary:'#855CD6',colourTertiary:'#774DCB',colourQuaternary:'#774DCB'},
+  sounds: {colourPrimary:'#CF63CF',colourSecondary:'#C94FC9',colourTertiary:'#BD42BD',colourQuaternary:'#BD42BD'},
+  control: {colourPrimary:'#FFAB19',colourSecondary:'#EC9C13',colourTertiary:'#CF8B17',colourQuaternary:'#CF8B17'},
+  event: {colourPrimary:'#FFBF00',colourSecondary:'#E6AC00',colourTertiary:'#CC9900',colourQuaternary:'#CC9900'},
+  sensing: {colourPrimary:'#5CB1D6',colourSecondary:'#47A8D1',colourTertiary:'#2E8EB8',colourQuaternary:'#2E8EB8'},
+  pen: {colourPrimary:'#0FBD8C',colourSecondary:'#0DA57A',colourTertiary:'#0B8E69',colourQuaternary:'#0B8E69'},
+  operators: {colourPrimary:'#59C059',colourSecondary:'#46B946',colourTertiary:'#389438',colourQuaternary:'#389438'},
+  data: {colourPrimary:'#FF8C1A',colourSecondary:'#FF8000',colourTertiary:'#DB6E00',colourQuaternary:'#DB6E00'},
+  data_lists: {colourPrimary:'#FF661A',colourSecondary:'#FF5500',colourTertiary:'#E64D00',colourQuaternary:'#E64D00'},
+  more: {colourPrimary:'#FF6680',colourSecondary:'#FF4D6A',colourTertiary:'#FF3355',colourQuaternary:'#FF3355'},
+  textField: {colourPrimary:'#FFFFFF',colourSecondary:'#FFFFFF',colourTertiary:'#D9D9D9',colourQuaternary:'#D9D9D9'}
+};
+function freshScratchTheme(){
+  const blockStyles={};
+  for(const [name,style] of Object.entries(SCRATCH_BLOCK_STYLES)) blockStyles[name]={...style};
+  return {
+    blockStyles,
+    componentStyles:{
+      workspaceBackgroundColour:'#FFFFFF',
+      toolboxBackgroundColour:'#FFFFFF',
+      flyoutBackgroundColour:'#F9F9F9',
+      scrollbarColour:'#CECDCE',
+      insertionMarkerColour:'#000000',
+      insertionMarkerOpacity:0.2
+    }
+  };
+}
+
 let ScratchBlocks = null;
 let loading = null;
 let workspace = null;
@@ -418,6 +448,7 @@ async function render(lesson) {
     container.innerHTML = '';
     currentContainer = container;
     workspace = SB.inject(container, {
+      theme: freshScratchTheme(),
       readOnly: true,
       media: MEDIA,
       scrollbars: false,
@@ -669,7 +700,7 @@ async function renderStepBlocks(lesson){
     node.innerHTML='<div class="step-official-label">SCRATCH 官方積木｜本步驟</div><div class="step-block-canvas"></div>';
     const canvas=node.querySelector('.step-block-canvas');
     try{
-      const ws=SB.inject(canvas,{readOnly:true,media:MEDIA,scrollbars:false,sounds:false,trashcan:false,comments:false,collapse:false,disable:false,zoom:{controls:false,wheel:false,startScale:.72,maxScale:1,minScale:.36,scaleSpeed:1.1},move:{scrollbars:false,drag:false,wheel:false}});
+      const ws=SB.inject(canvas,{theme:freshScratchTheme(),readOnly:true,media:MEDIA,scrollbars:false,sounds:false,trashcan:false,comments:false,collapse:false,disable:false,zoom:{controls:false,wheel:false,startScale:.72,maxScale:1,minScale:.36,scaleSpeed:1.1},move:{scrollbars:false,drag:false,wheel:false}});
       const dom=SB.utils.xml.textToDom(xml); SB.Xml.domToWorkspace(dom,ws); stepWorkspaces.push(ws);
       requestAnimationFrame(()=>{try{ws.zoomToFit(); if(ws.scale>0.9) ws.setScale(0.9);}catch(_){}});
     }catch(err){
