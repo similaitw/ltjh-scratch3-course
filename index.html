@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="theme-color" content="#111827" />
+  <title>Scratch 3 完整基礎課程｜宜蘭版知識技能教學</title>
+  <meta name="description" content="依宜蘭縣 Scratch 3 基礎課程重新整理的完整自學網站：從介面、座標、角色控制，到射擊、分身、變數、廣播、計時、聲音與視訊互動。" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+<header class="topbar">
+  <a class="brand" href="#top" aria-label="回首頁">
+    <span class="brand-mark">S3</span>
+    <span><b>Scratch 3 完整教學</b><small>宜蘭版知識 × 技能地圖</small></span>
+  </a>
+  <div class="top-actions">
+    <button id="teacherModeBtn" class="icon-btn" type="button" aria-label="切換教師模式" title="教師模式">師</button>
+    <button id="themeBtn" class="icon-btn" type="button" aria-label="切換深色模式">◐</button>
+    <a class="primary-btn" href="https://scratch.mit.edu/projects/editor/" target="_blank" rel="noreferrer">開啟 Scratch ↗</a>
+  </div>
+</header>
+
+<div id="top" class="layout">
+  <aside class="sidebar" aria-label="課程導覽">
+    <div class="search-wrap">
+      <input id="searchInput" type="search" placeholder="搜尋課程、積木或技能…" aria-label="搜尋課程" />
+    </div>
+    <div class="mobile-lesson-jump"><label for="mobileLessonSelect">快速切換課程</label><select id="mobileLessonSelect" aria-label="快速切換課程"></select></div>
+    <nav id="lessonNav" class="lesson-nav"></nav>
+    <div class="progress-card">
+      <div class="progress-row"><b>學習進度</b><span id="progressText">0 / 19</span></div>
+      <div class="progress-track"><div id="progressBar" class="progress-bar"></div></div>
+      <button id="resetProgress" class="text-btn" type="button">重設進度</button>
+    </div>
+  </aside>
+
+  <main class="main">
+    <section class="hero">
+      <div class="eyebrow">SCRATCH 3 · 從零到完整遊戲</div>
+      <h1>把「看影片」變成<br><span>真的會寫程式</span></h1>
+      <p>依宜蘭縣 Scratch 3 基礎課程的主題重新整理，把每一堂課拆成「先懂觀念 → 找到積木 → 完成程式 → 自己測試 → 延伸挑戰」。適合學生自學，也適合老師直接拿來上課。</p>
+      <div class="hero-actions">
+        <a class="primary-btn" href="#roadmap">開始學習</a>
+        <a class="ghost-btn" href="#skills">先看技能地圖</a>
+      </div>
+      <div class="hero-stats">
+        <div><b>14</b><span>主線課程</span></div>
+        <div><b>5</b><span>補充／進階</span></div>
+        <div><b>30+</b><span>核心技能</span></div>
+      </div>
+    </section>
+
+    <section id="skills" class="section">
+      <div class="section-head"><div><span class="kicker">KNOWLEDGE MAP</span><h2>先看全課程要學會什麼</h2></div></div>
+      <div class="skill-grid">
+        <article class="skill-card"><span class="dot motion"></span><h3>動作與座標</h3><p>移動、滑行、轉向、X/Y 座標、邊界、角色定位與精確操控。</p></article>
+        <article class="skill-card"><span class="dot control"></span><h3>事件與控制</h3><p>綠旗、鍵盤事件、重複、等待、條件判斷與遊戲主迴圈。</p></article>
+        <article class="skill-card"><span class="dot sensing"></span><h3>偵測與碰撞</h3><p>碰到角色／顏色、按鍵偵測、滑鼠、視訊偵測與聲音互動。</p></article>
+        <article class="skill-card"><span class="dot variable"></span><h3>資料與狀態</h3><p>分數、生命、時間、遊戲狀態、變數初始化、累加與勝負條件。</p></article>
+        <article class="skill-card"><span class="dot event"></span><h3>廣播與角色協作</h3><p>跨角色同步、遊戲開始／結束、畫面切換、訊息驅動的程式架構。</p></article>
+        <article class="skill-card"><span class="dot clone"></span><h3>分身與遊戲系統</h3><p>子彈、敵人、多物件生成、刪除分身、效能控制與可重用邏輯。</p></article>
+      </div>
+    </section>
+
+    <section id="mastery" class="section mastery-section">
+      <div class="section-head"><div><span class="kicker">SKILL CHECKPOINTS</span><h2>全課程技能檢核表</h2></div><p>依課程內容拆成可驗收的能力點。學生可自我勾選；教師模式可查看尚未通過項目與對應課次。</p></div>
+      <div class="mastery-toolbar">
+        <div><b id="masterySummary">0 / 0 已通過</b><span>檢核狀態會保存在這台裝置</span></div>
+        <button id="resetMastery" class="ghost-btn" type="button">重設檢核</button>
+      </div>
+      <div id="masteryGrid" class="mastery-grid"></div>
+    </section>
+
+    <section id="roadmap" class="section">
+      <div class="section-head"><div><span class="kicker">LEARNING ROADMAP</span><h2>完整課程路線</h2></div><p>建議依序完成 01–14，再進入補充與進階課。</p></div>
+      <div id="roadmapGrid" class="roadmap-grid"></div>
+    </section>
+
+    <section id="lessonArea" class="section lesson-area">
+      <div id="lessonContent"></div>
+    </section>
+
+    <section class="section concept-bank">
+      <div class="section-head"><div><span class="kicker">CONCEPT BANK</span><h2>Scratch 必懂觀念總整理</h2></div></div>
+      <div class="concept-list">
+        <details open><summary>1. 程式不是「積木越多越厲害」，而是規則越清楚越好</summary><p>先決定「什麼時候開始、要重複什麼、遇到什麼條件要做什麼」，再去找積木。寫程式前先用一句話描述規則，通常能少掉很多錯誤。</p></details>
+        <details><summary>2. 每個角色都有自己的程式與資料</summary><p>同一個舞台上的角色可以各自執行程式。變數又分成「所有角色共用」與「僅此角色使用」；設計遊戲前要先判斷資料應該屬於誰。</p></details>
+        <details><summary>3. Scratch 舞台座標系統</summary><p>舞台中心是 (0,0)，右邊 X 為正、左邊 X 為負；上方 Y 為正、下方 Y 為負。一般舞台約為 X：-240～240、Y：-180～180。</p></details>
+        <details><summary>4. 事件、迴圈、條件是遊戲的骨架</summary><p>事件負責「什麼時候開始」，迴圈負責「持續做」，條件負責「符合情況才做」。大多數遊戲角色都可以用這三層結構讀懂。</p></details>
+        <details><summary>5. 廣播是角色之間的訊息系統</summary><p>不要讓每個角色都自己猜遊戲是否開始或結束。用「廣播」把事件命名，例如：開始遊戲、玩家死亡、過關、遊戲結束，程式會更清楚。</p></details>
+        <details><summary>6. 分身不是複製程式，而是大量產生同類物件</summary><p>適合子彈、敵人、掉落物。原角色負責產生分身；「當分身產生」負責每個分身自己的動作；離開畫面或碰撞後要刪除分身。</p></details>
+        <details><summary>7. 變數就是遊戲記憶</summary><p>分數、生命、剩餘時間、關卡、速度都可用變數記錄。遊戲開始前一定要初始化，否則上一次測試留下的值會影響結果。</p></details>
+        <details><summary>8. 除錯要把問題縮小</summary><p>先確認事件有沒有觸發，再看條件是否成立，再看變數是否正確。一次只改一個地方；必要時暫時顯示變數或讓角色「說出」資料做檢查。</p></details>
+      </div>
+    </section>
+
+    <section class="section teacher-kit">
+      <div class="section-head"><div><span class="kicker">TEACHER KIT</span><h2>老師可直接使用的課堂檢核</h2></div></div>
+      <div class="teacher-grid">
+        <div><b>基本檢核</b><p>能說出程式功能、找到正確積木類別、依題目獨立完成核心功能。</p></div>
+        <div><b>操作檢核</b><p>綠旗重跑結果一致；角色不會卡死；重新開始時位置、分數、生命與時間正確初始化。</p></div>
+        <div><b>理解檢核</b><p>能解釋「為什麼放在重複裡」、「為什麼要判斷」、「為什麼要廣播」。</p></div>
+        <div><b>進階加分</b><p>能加入第二種敵人、難度遞增、關卡、生命值或自己設計的新規則。</p></div>
+      </div>
+    </section>
+
+    <section class="section sources">
+      <div class="section-head"><div><span class="kicker">SOURCES</span><h2>原始課程與學習資源</h2></div></div>
+      <p>本網站為重新編寫的學習整理，課程主題依宜蘭縣 Scratch 3 基礎課程系列整理；影片按鈕連回原教學影片。</p><div class="tip">積木圖示原則：網站不使用自行仿製的 Scratch 積木。積木本體優先由 <b>Scratch Foundation 官方 scratch-blocks 元件</b>直接渲染；需要教學生「去哪裡找」時，再搭配 Scratch 官方編輯器實際截圖。</div>
+      <div class="source-links">
+        <a href="https://2blog.ilc.edu.tw/ltjhinformation/%e5%ae%9c%e8%98%ad%e7%b8%a3scratch3%e5%9f%ba%e7%a4%8e%e8%aa%b2%e7%a8%8b2022/" target="_blank" rel="noreferrer">原始課程頁 ↗</a>
+        <a href="https://scratch.mit.edu/" target="_blank" rel="noreferrer">Scratch 官方網站 ↗</a>
+        <a href="https://commons.wikimedia.org/wiki/File:Scratch_editor_screenshot.png" target="_blank" rel="noreferrer">Scratch Editor 截圖來源／授權 ↗</a>
+      </div>
+    </section>
+  </main>
+</div>
+
+<footer>Scratch 3 完整教學 · 教學整理版</footer>
+<script src="script.js"></script>
+<script type="module" src="official-blocks.js"></script>
+</body>
+</html>
