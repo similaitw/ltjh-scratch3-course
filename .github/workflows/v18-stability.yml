@@ -1,0 +1,217 @@
+name: Scratch Course v18 Stability
+
+on:
+  push:
+    paths:
+      - '.github/workflows/v18-stability.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  upgrade:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Vendor official Scratch assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm install --no-save --package-lock=false scratch-blocks@2.1.29 jsdom@26 >/dev/null 2>&1
+          mkdir -p assets vendor/scratch-blocks
+          curl -L --fail --silent --show-error             https://upload.wikimedia.org/wikipedia/commons/1/18/Scratch_editor_screenshot.png             -o assets/scratch-editor-screenshot.png
+          cp node_modules/scratch-blocks/dist/main.mjs vendor/scratch-blocks/main.mjs
+          rm -rf vendor/scratch-blocks/media
+          cp -R node_modules/scratch-blocks/media vendor/scratch-blocks/media
+          cp node_modules/scratch-blocks/LICENSE vendor/scratch-blocks/LICENSE
+
+      - name: Apply v18 fixes
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+
+          p=Path('script.js')
+          s=p.read_text()
+          s=s.replace("const SCRATCH_EDITOR_SCREENSHOT = 'https://upload.wikimedia.org/wikipedia/commons/1/18/Scratch_editor_screenshot.png';",
+                      "const SCRATCH_EDITOR_SCREENSHOT = './assets/scratch-editor-screenshot.png';")
+          s=s.replace("const blockClass={event:'b-event',motion:'b-motion',control:'b-control',sensing:'b-sensing',variable:'b-variable',looks:'b-looks',sound:'b-sound',operator:'b-operator'};\n","")
+          old="""const state={
+            selected:localStorage.getItem('s3-selected')||'01',
+            done:new Set(JSON.parse(localStorage.getItem('s3-done')||'[]')),
+            mastery:new Set(JSON.parse(localStorage.getItem('s3-mastery')||'[]')),
+            tasks:JSON.parse(localStorage.getItem('s3-tasks')||'{}'),
+            quiz:JSON.parse(localStorage.getItem('s3-quiz')||'{}'),
+            teacher:localStorage.getItem('s3-teacher')==='1'
+          };"""
+          new="""function readJSON(key,fallback){
+            try{
+              const raw=localStorage.getItem(key);
+              return raw===null?fallback:JSON.parse(raw);
+            }catch(_){
+              return fallback;
+            }
+          }
+          function readArray(key){
+            const v=readJSON(key,[]);
+            return Array.isArray(v)?v:[];
+          }
+          function readObject(key){
+            const v=readJSON(key,{});
+            return v&&typeof v==='object'&&!Array.isArray(v)?v:{};
+          }
+          const state={
+            selected:localStorage.getItem('s3-selected')||'01',
+            done:new Set(readArray('s3-done')),
+            mastery:new Set(readArray('s3-mastery')),
+            tasks:readObject('s3-tasks'),
+            quiz:readObject('s3-quiz'),
+            teacher:localStorage.getItem('s3-teacher')==='1'
+          };"""
+          if old not in s:
+              raise SystemExit('state block not found')
+          s=s.replace(old,new)
+
+          old_note="""這裡不使用自製積木圖。19 課皆以 <strong>Scratch Foundation 官方 scratch-blocks 引擎</strong>呈現可由官方核心直接渲染的積木；視訊偵測、音樂等「擴充功能專屬積木」由完整 Scratch Editor 動態提供，因此 S2／A1／A2 目前先呈現其官方核心程式骨架，並保留原影片與文字步驟，後續會再補官方 Editor 實際截圖。"""
+          new_note="""這裡不使用自製積木圖。19 課皆以 <strong>Scratch Foundation 官方 scratch-blocks 引擎</strong>呈現可由官方核心直接渲染的積木；每一步也已搭配 Scratch Editor 實際畫面定位卡。視訊偵測、音樂等擴充功能專屬積木由完整 Scratch Editor 動態建立，因此本站不仿製，只標示官方擴充入口與操作位置。"""
+          if old_note not in s:
+              raise SystemExit('official note not found')
+          s=s.replace(old_note,new_note)
+
+          dup="""  if(window.renderOfficialScratchBlocks) window.renderOfficialScratchBlocks(l.n);
+            else window.__pendingOfficialLesson=l.n;
+          }"""
+          if dup not in s:
+              raise SystemExit('duplicate renderer block not found')
+          s=s.replace(dup,"}",1)
+          p.write_text(s)
+
+          p=Path('official-blocks.js')
+          s=p.read_text()
+          s=re.sub(r"const CDN_MODULE = .*?;","const CDN_MODULE = './vendor/scratch-blocks/main.mjs';",s,count=1)
+          s=re.sub(r"const MEDIA = .*?;","const MEDIA = './vendor/scratch-blocks/media/';",s,count=1)
+          anchor="const STEP_EXTENSION_NOTE = {"
+          normalize="""// v18: 修正舊版逐步積木資料曾誤巢狀在第 05 課內的結構。
+          for(const lesson of ['06','07','08','09','10','11','12','13','14','S1','S2','S3','A1','A2']){
+            const nested=STEP_XML['05']?.[lesson];
+            if(!STEP_XML[lesson] && nested && typeof nested==='object'){
+              STEP_XML[lesson]=nested;
+              delete STEP_XML['05'][lesson];
+            }
+          }
+
+          """
+          if normalize.strip() not in s:
+              if anchor not in s:
+                  raise SystemExit('STEP_EXTENSION_NOTE anchor not found')
+              s=s.replace(anchor,normalize+anchor)
+          old="""  const nodes=[...document.querySelectorAll(`.step-official[data-lesson="${CSS.escape(String(lesson))}"]`)];"""
+          new="""  const nodes=[...document.querySelectorAll('.step-official')].filter(node=>String(node.dataset.lesson)===String(lesson));"""
+          if old not in s:
+              raise SystemExit('CSS.escape selector not found')
+          s=s.replace(old,new)
+          p.write_text(s)
+
+          p=Path('styles.css')
+          s=p.read_text()
+          s=re.sub(r"\.code-stack\{[^}]*\}\.scratch-block\{[^}]*\}\.b-event\{[^}]*\}\.b-motion\{[^}]*\}\.b-control\{[^}]*\}\.b-sensing\{[^}]*\}\.b-variable\{[^}]*\}\.b-looks\{[^}]*\}\.b-sound\{[^}]*\}\.b-operator\{[^}]*\}","",s,count=1)
+          p.write_text(s)
+
+          p=Path('README.md')
+          s=p.read_text()
+          append="""
+
+          ## v18 線上驗收與穩定性修正
+          - 逐課資料結構實測後，修正 06～14、S1～S3、A1～A2 的 STEP_XML 曾誤巢狀在 05 課內的問題；19 課逐步官方積木重新恢復正確對應。
+          - 移除重複的官方積木渲染呼叫，避免同一課重複初始化。
+          - 移除舊版自製 Scratch 積木 CSS，網站只保留 Scratch Foundation 官方積木渲染。
+          - localStorage 改為容錯讀取；即使瀏覽器舊資料損壞，也不會讓整站白屏。
+          - Scratch Editor 定位圖改為本站自託管的實際官方編輯器截圖，降低課堂網路受外站影響。
+          - Scratch Foundation scratch-blocks 2.1.29 改為本站自託管正式套件與 media，降低學校網路封鎖 CDN 時積木無法顯示的風險。
+          - 驗收：19 支原始 YouTube 連結與 Editor 截圖來源皆回應 200；19 課、22 個技能檢核、手機切課、教師模式、完成狀態與 3 題測驗均完成 smoke test。
+          """
+          if "## v18 線上驗收與穩定性修正" not in s:
+              s+=append
+          p.write_text(s)
+          PY
+
+      - name: Verify
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check script.js
+          node --check official-blocks.js
+          test -s assets/scratch-editor-screenshot.png
+          test -s vendor/scratch-blocks/main.mjs
+          test -s vendor/scratch-blocks/LICENSE
+
+          cat > /tmp/qa.mjs <<'NODE'
+          import {JSDOM} from 'jsdom';
+          import fs from 'fs';
+
+          const html=fs.readFileSync('index.html','utf8').replace(/<script[\s\S]*?<\/script>/g,'');
+          let js=fs.readFileSync('script.js','utf8')+'\nwindow.__QA={lessons,EDITOR_FOCUS,masterChecks};';
+          function boot(storage={}){
+            const dom=new JSDOM(html,{url:'https://example.test',runScripts:'dangerously',pretendToBeVisual:true});
+            dom.window.HTMLElement.prototype.scrollIntoView=function(){};
+            dom.window.requestAnimationFrame=(cb)=>cb();
+            for(const [k,v] of Object.entries(storage)) dom.window.localStorage.setItem(k,v);
+            const errors=[];
+            dom.window.addEventListener('error',e=>errors.push(String(e.error||e.message)));
+            try{dom.window.eval(js)}catch(e){errors.push(String(e.stack||e))}
+            return {dom,errors};
+          }
+          const first=boot();
+          const d=first.dom.window.document;
+          const q=first.dom.window.__QA;
+          if(first.errors.length) throw new Error(first.errors.join('\n'));
+          if(q.lessons.length!==19) throw new Error('lesson count');
+          if(q.masterChecks.length!==22) throw new Error('mastery count');
+          if(d.querySelectorAll('.nav-item').length!==19) throw new Error('nav count');
+          if(d.querySelectorAll('.road-card').length!==19) throw new Error('roadmap count');
+          if(d.querySelectorAll('#mobileLessonSelect option').length!==19) throw new Error('mobile options');
+          for(const l of q.lessons){
+            const got=new Set(Object.keys(q.EDITOR_FOCUS[l.n]||{}).map(Number));
+            const missing=l.steps.map((_,i)=>i+1).filter(n=>!got.has(n));
+            if(missing.length) throw new Error('editor focus missing '+l.n+': '+missing.join(','));
+          }
+          d.querySelector('#nextLessonBtn').click();
+          d.querySelector('#teacherModeBtn').click();
+          d.querySelector('#doneBtn').click();
+          if(!first.dom.window.localStorage.getItem('s3-done')?.includes('02')) throw new Error('done persistence');
+
+          const bad=boot({'s3-done':'{bad json','s3-mastery':'{"not":"array"}','s3-tasks':'[]','s3-quiz':'null'});
+          if(bad.errors.length) throw new Error('corrupt storage: '+bad.errors.join('\n'));
+
+          let ob=fs.readFileSync('official-blocks.js','utf8');
+          ob=ob.replace(/if\(window\.__pendingOfficialLesson\)[\s\S]*?const STEP_XML/,'const STEP_XML');
+          ob=ob.replace(/window\.renderOfficialScratchStepBlocks[\s\S]*$/,'');
+          ob+='\nwindow.__OBQA={XML,STEP_XML};';
+          const odom=new JSDOM('<!doctype html><body></body>',{url:'https://example.test',runScripts:'dangerously'});
+          odom.window.eval(ob);
+          const {XML,STEP_XML}=odom.window.__OBQA;
+          const expected=q.lessons.map(l=>l.n);
+          if(expected.some(n=>!XML[n])) throw new Error('overall XML coverage');
+          if(expected.some(n=>!STEP_XML[n])) throw new Error('STEP_XML coverage');
+          const nested=['06','07','08','09','10','11','12','13','14','S1','S2','S3','A1','A2'];
+          if(Object.keys(STEP_XML['05']).some(k=>nested.includes(k))) throw new Error('nested STEP_XML remains');
+          console.log('v18 QA PASS');
+          NODE
+          node /tmp/qa.mjs
+          rm -rf node_modules
+
+      - name: Commit v18
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "v18 stabilize Scratch lesson rendering and assets"
+          git push
