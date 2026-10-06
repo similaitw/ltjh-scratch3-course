@@ -217,7 +217,6 @@ const lessons = [
 {n:'A2',type:'進階',title:'視訊音樂遊戲：我是小樂手',short:'把鏡頭動作、音效與節奏結合成互動樂器。',video:'https://www.youtube.com/watch?v=ZaK9yJgow2g',goals:['會使用音樂／音效相關積木','把畫面區域分成不同音高或樂器','用視訊動作觸發聲音','避免同一區域連續高速重複播放'],skills:['音效','音樂','視訊','區域互動'],blocks:[['sound','演奏音符 60 0.25 拍'],['control','如果 <視訊動作 > 門檻> 那麼'],['control','等待 0.1 秒']],steps:["加入視訊偵測與音樂／音效擴充功能，確認攝影機與聲音都能正常使用。","在舞台上安排數個不同位置的角色或區塊，每個區塊代表一個音符或一種樂器。","先替第一個區塊設定：如果該角色上的視訊動作超過門檻，就演奏指定音符。","複製程式到其他區塊，分別改成不同音高，例如 C、D、E、F、G。","揮手測試每個區域，確認手移到哪個區域，就只會觸發該區域對應的聲音。","如果一次揮手讓同一個音重複很多次，在播放後加入 0.1～0.3 秒冷卻。","調整音符長度或節拍，避免每個音拖太久造成聲音互相重疊。","加入造型切換、亮起或放大等視覺回饋，讓玩家看得出是哪個音被觸發。","依照簡單旋律排列區域或設計 8 個音階，嘗試用手勢依序演奏。","完成檢核：每個區域有清楚對應的音，觸發不會連發失控，並能演奏一小段旋律。"],concept:'互動音樂其實也是事件系統：感測器產生事件，聲音是回應。把「輸入—判斷—輸出」看清楚，就能設計各種創意互動。',mistakes:['每個音同時被觸發，缺乏區域區隔','音效過長造成重疊','沒有固定節拍，旋律節奏不穩'],challenge:'做八個音階區塊，設計一首可以用手勢演奏的簡單歌曲。'}
 ];
 
-const blockClass={event:'b-event',motion:'b-motion',control:'b-control',sensing:'b-sensing',variable:'b-variable',looks:'b-looks',sound:'b-sound',operator:'b-operator'};
 const blockLabel={event:'事件',motion:'動作',control:'控制',sensing:'偵測',variable:'變數',looks:'外觀',sound:'音效',operator:'運算'};
 
 const masterChecks=[
@@ -245,12 +244,28 @@ const masterChecks=[
 {id:'m22',title:'能自己除錯並說明程式為什麼這樣設計',detail:'會先檢查事件、迴圈、條件、變數與角色，再一次只修改一個問題。',lessons:['01','14']}
 ];
 
+function readJSON(key,fallback){
+  try{
+    const raw=localStorage.getItem(key);
+    return raw===null?fallback:JSON.parse(raw);
+  }catch(_){
+    return fallback;
+  }
+}
+function readArray(key){
+  const v=readJSON(key,[]);
+  return Array.isArray(v)?v:[];
+}
+function readObject(key){
+  const v=readJSON(key,{});
+  return v&&typeof v==='object'&&!Array.isArray(v)?v:{};
+}
 const state={
   selected:localStorage.getItem('s3-selected')||'01',
-  done:new Set(JSON.parse(localStorage.getItem('s3-done')||'[]')),
-  mastery:new Set(JSON.parse(localStorage.getItem('s3-mastery')||'[]')),
-  tasks:JSON.parse(localStorage.getItem('s3-tasks')||'{}'),
-  quiz:JSON.parse(localStorage.getItem('s3-quiz')||'{}'),
+  done:new Set(readArray('s3-done')),
+  mastery:new Set(readArray('s3-mastery')),
+  tasks:readObject('s3-tasks'),
+  quiz:readObject('s3-quiz'),
   teacher:localStorage.getItem('s3-teacher')==='1'
 };
 const nav=document.getElementById('lessonNav'), grid=document.getElementById('roadmapGrid'), content=document.getElementById('lessonContent'), search=document.getElementById('searchInput'), mobileSelect=document.getElementById('mobileLessonSelect');
@@ -337,7 +352,7 @@ function renderLesson(){
   <div class="lesson-hero"><div class="lesson-label">${l.type} · LESSON ${l.n}${state.teacher?'<span class="mode-pill">教師模式</span>':''}</div><h2>${l.title}</h2><p>${l.short}</p><div class="lesson-actions"><a class="video-btn" href="${l.video}" target="_blank" rel="noreferrer">觀看原教學影片 ↗</a><button id="doneBtn" class="done-btn ${done?'completed':''}">${done?'✓ 已完成':'標記完成'}</button></div><div class="lesson-pager"><button type="button" id="prevLessonBtn" ${lessons[0].n===l.n?'disabled':''}>← 上一課</button><span>${lessons.indexOf(l)+1} / ${lessons.length}</span><button type="button" id="nextLessonBtn" ${lessons[lessons.length-1].n===l.n?'disabled':''}>下一課 →</button></div></div>
   <div class="lesson-body"><div class="lesson-main">
     <section class="lesson-block"><h3>學習目標</h3><ul class="goal-list">${l.goals.map(x=>`<li>${x}</li>`).join('')}</ul></section>
-    <section class="lesson-block"><h3>Scratch 官方積木組合</h3><div class="official-shot-note">這裡不使用自製積木圖。19 課皆以 <strong>Scratch Foundation 官方 scratch-blocks 引擎</strong>呈現可由官方核心直接渲染的積木；視訊偵測、音樂等「擴充功能專屬積木」由完整 Scratch Editor 動態提供，因此 S2／A1／A2 目前先呈現其官方核心程式骨架，並保留原影片與文字步驟，後續會再補官方 Editor 實際截圖。</div>${['S2','A1','A2'].includes(l.n)?'<div class="extension-limit-note"><b>擴充積木說明：</b>此課的視訊偵測／音樂觸發積木不是 scratch-blocks 單獨套件中的靜態積木，而是由完整 Scratch 編輯器載入擴充功能後動態建立。網站不自行仿製，改以官方 Editor 截圖補足。</div>':''}<div class="official-workspace-wrap"><div id="officialBlocks" class="official-workspace" data-lesson="${l.n}"><div class="official-loading">正在載入 Scratch 官方積木…</div></div></div><details class="official-fallback"><summary>查看本課積木文字清單</summary><ul class="official-block-list">${l.blocks.map(b=>`<li><span class="block-cat">${blockLabel[b[0]]||'其他'}</span><span class="block-text">${b[1]}</span></li>`).join('')}</ul></details></section>
+    <section class="lesson-block"><h3>Scratch 官方積木組合</h3><div class="official-shot-note">這裡不使用自製積木圖。19 課皆以 <strong>Scratch Foundation 官方 scratch-blocks 引擎</strong>呈現可由官方核心直接渲染的積木；每一步也已搭配 Scratch Editor 實際畫面定位卡。視訊偵測、音樂等擴充功能專屬積木由完整 Scratch Editor 動態建立，因此本站不仿製，只標示官方擴充入口與操作位置。</div>${['S2','A1','A2'].includes(l.n)?'<div class="extension-limit-note"><b>擴充積木說明：</b>此課的視訊偵測／音樂觸發積木不是 scratch-blocks 單獨套件中的靜態積木，而是由完整 Scratch 編輯器載入擴充功能後動態建立。網站不自行仿製，改以官方 Editor 截圖補足。</div>':''}<div class="official-workspace-wrap"><div id="officialBlocks" class="official-workspace" data-lesson="${l.n}"><div class="official-loading">正在載入 Scratch 官方積木…</div></div></div><details class="official-fallback"><summary>查看本課積木文字清單</summary><ul class="official-block-list">${l.blocks.map(b=>`<li><span class="block-cat">${blockLabel[b[0]]||'其他'}</span><span class="block-text">${b[1]}</span></li>`).join('')}</ul></details></section>
     <section class="lesson-block"><h3>影片逐步教學｜照著做</h3><p class="step-intro">把影片內容拆成可以逐步操作的流程。完成一個步驟再往下，遇到問題先回到上一個步驟檢查。</p><ol class="step-list">${l.steps.map((x,i)=>`<li><div class="step-text">${x}</div>${renderEditorFocus(l.n,i+1)}<div class="step-official" data-lesson="${l.n}" data-step="${i+1}"></div></li>`).join('')}</ol></section>
     <section class="lesson-block"><h3>一定要懂的觀念</h3><div class="tip">${l.concept}</div></section>
     <section class="lesson-block"><h3>常見錯誤</h3>${l.mistakes.map(x=>`<div class="warning">⚠ ${x}</div>`).join('')}</section>
@@ -363,8 +378,6 @@ function renderLesson(){
     quiz.forEach((q,qi)=>{const picked=e.currentTarget.querySelector(`input[name="q${qi}"]:checked`);if(picked&&picked.value===q.a)score++;});
     state.quiz[l.n]=score;save();renderLesson();
   };
-  if(window.renderOfficialScratchBlocks) window.renderOfficialScratchBlocks(l.n);
-  else window.__pendingOfficialLesson=l.n;
 }
 function escapeHtml(s){return String(s).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;')}
 function selectLesson(n,scroll=false){state.selected=n;save();renderNav(search.value);renderMobileSelect();renderLesson();if(scroll)document.getElementById('lessonArea').scrollIntoView({behavior:'smooth',block:'start'});}

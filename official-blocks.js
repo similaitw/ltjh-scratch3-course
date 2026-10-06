@@ -1,6 +1,6 @@
 const VERSION = '2.1.29';
-const CDN_MODULE = `https://esm.sh/scratch-blocks@${VERSION}?bundle`;
-const MEDIA = `https://cdn.jsdelivr.net/npm/scratch-blocks@${VERSION}/media/`;
+const CDN_MODULE = './vendor/scratch-blocks/main.mjs';
+const MEDIA = './vendor/scratch-blocks/media/';
 
 const XML = {
   '01': `<xml xmlns="https://developers.google.com/blockly/xml">
@@ -611,6 +611,15 @@ const STEP_XML = {
 
 };
 
+// v18: 修正舊版逐步積木資料曾誤巢狀在第 05 課內的結構。
+for(const lesson of ['06','07','08','09','10','11','12','13','14','S1','S2','S3','A1','A2']){
+  const nested=STEP_XML['05']?.[lesson];
+  if(!STEP_XML[lesson] && nested && typeof nested==='object'){
+    STEP_XML[lesson]=nested;
+    delete STEP_XML['05'][lesson];
+  }
+}
+
 const STEP_EXTENSION_NOTE = {
   'S2': {
     1:'這一步使用 Scratch 官方「視訊偵測」擴充功能；完整積木由 Scratch Editor 載入擴充功能後動態產生，網站不仿製。',
@@ -638,7 +647,7 @@ function disposeStepWorkspaces(){
   stepWorkspaces=[];
 }
 async function renderStepBlocks(lesson){
-  const nodes=[...document.querySelectorAll(`.step-official[data-lesson="${CSS.escape(String(lesson))}"]`)];
+  const nodes=[...document.querySelectorAll('.step-official')].filter(node=>String(node.dataset.lesson)===String(lesson));
   if(!nodes.length) return;
   disposeStepWorkspaces();
   let SB;
