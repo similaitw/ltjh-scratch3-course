@@ -44,3 +44,5 @@ jobs:
             git commit -m "Unpack Scratch course site v17"
             git push
           fi
+
+# retry-after-all-parts-uploaded
