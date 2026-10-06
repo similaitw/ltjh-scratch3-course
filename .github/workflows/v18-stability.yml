@@ -151,7 +151,7 @@ jobs:
           test -s vendor/scratch-blocks/main.mjs
           test -s vendor/scratch-blocks/LICENSE
 
-          cat > /tmp/qa.mjs <<'NODE'
+          cat > qa.mjs <<'NODE'
           import {JSDOM} from 'jsdom';
           import fs from 'fs';
 
@@ -203,8 +203,8 @@ jobs:
           if(Object.keys(STEP_XML['05']).some(k=>nested.includes(k))) throw new Error('nested STEP_XML remains');
           console.log('v18 QA PASS');
           NODE
-          node /tmp/qa.mjs
-          rm -rf node_modules
+          node qa.mjs
+          rm -f qa.mjs\n          rm -rf node_modules
 
       - name: Commit v18
         shell: bash
